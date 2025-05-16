@@ -1,12 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '../../utils/supabase/client'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { Label } from '../../components/ui/label'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
 import { format } from 'date-fns'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -36,8 +36,10 @@ export default function DivisionsTable({ divisions, userId }: DivisionsTableProp
   const [error, setError] = useState<string | null>(null)
   const [deletingDivision, setDeletingDivision] = useState<Division | null>(null)
   
-  const handleAddNew = async (e: React.FormEvent) => {
+  const handleAddNew = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!newDivisionName.trim()) return
+    
     setIsLoading(true)
     setError(null)
     
@@ -45,7 +47,7 @@ export default function DivisionsTable({ divisions, userId }: DivisionsTableProp
       const { error: insertError } = await supabase
         .from('divisions')
         .insert({
-          name: newDivisionName,
+          name: newDivisionName.trim(),
           created_by: userId
         })
       
@@ -54,51 +56,57 @@ export default function DivisionsTable({ divisions, userId }: DivisionsTableProp
       setNewDivisionName('')
       setIsAddingNew(false)
       router.refresh()
+      toast.success('Division added successfully')
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to add division'
       setError(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [newDivisionName, userId, router, supabase])
   
-  const handleStartEdit = (division: Division) => {
+  const handleStartEdit = useCallback((division: Division) => {
     setEditingId(division.id)
     setEditName(division.name)
-  }
+  }, [])
   
-  const handleCancelEdit = () => {
+  const handleCancelEdit = useCallback(() => {
     setEditingId(null)
     setEditName('')
-  }
+  }, [])
   
-  const handleSaveEdit = async (id: string) => {
+  const handleSaveEdit = useCallback(async (id: string) => {
+    if (!editName.trim()) return
+    
     setIsLoading(true)
     setError(null)
     
     try {
       const { error: updateError } = await supabase
         .from('divisions')
-        .update({ name: editName })
+        .update({ name: editName.trim() })
         .eq('id', id)
       
       if (updateError) throw updateError
       
       setEditingId(null)
       router.refresh()
+      toast.success('Division updated successfully')
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to update division'
       setError(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [editName, router, supabase])
   
-  const handleDelete = (division: Division) => {
+  const handleDelete = useCallback((division: Division) => {
     setDeletingDivision(division)
-  }
+  }, [])
   
-  const handleConfirmDelete = async () => {
+  const handleConfirmDelete = useCallback(async () => {
     if (!deletingDivision) return
     
     setIsLoading(true)
@@ -119,14 +127,93 @@ export default function DivisionsTable({ divisions, userId }: DivisionsTableProp
       setIsLoading(false)
       setDeletingDivision(null)
     }
-  }
+  }, [deletingDivision, router, supabase])
+
+  const handleDialogOpenChange = useCallback((open: boolean) => {
+    if (!open) setDeletingDivision(null)
+  }, [])
+  
+  // Memoize the table rows to prevent unnecessary re-renders
+  const tableRows = useMemo(() => divisions.map(division => (
+    <tr key={division.id} className="hover:bg-muted/30">
+      <td className="py-3 px-4">
+        {editingId === division.id ? (
+          <Input
+            value={editName}
+            onChange={(e) => setEditName(e.target.value)}
+            className="max-w-xs"
+            autoFocus
+          />
+        ) : (
+          <span>{division.name}</span>
+        )}
+      </td>
+      <td className="py-3 px-4">
+        {division.created_at ? format(new Date(division.created_at), 'MMM d, yyyy') : '—'}
+      </td>
+      <td className="py-3 px-4">
+        {division.canManage && (
+          <div className="flex gap-2">
+            {editingId === division.id ? (
+              <>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={handleCancelEdit}
+                  disabled={isLoading}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  size="sm"
+                  onClick={() => handleSaveEdit(division.id)}
+                  disabled={isLoading || !editName.trim()}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save'
+                  )}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => handleStartEdit(division)}
+                  disabled={isLoading}
+                >
+                  Edit
+                </Button>
+                <Button 
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => handleDelete(division)}
+                  disabled={isLoading}
+                >
+                  Delete
+                </Button>
+              </>
+            )}
+          </div>
+        )}
+      </td>
+    </tr>
+  )), [divisions, editingId, editName, isLoading, handleCancelEdit, handleSaveEdit, handleStartEdit, handleDelete])
   
   return (
     <>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h2 className="text-lg font-medium">Divisions</h2>
-          <Button onClick={() => setIsAddingNew(true)} disabled={isAddingNew}>
+          <Button 
+            onClick={() => setIsAddingNew(true)} 
+            disabled={isAddingNew || isLoading}
+          >
             Add New Division
           </Button>
         </div>
@@ -143,6 +230,8 @@ export default function DivisionsTable({ divisions, userId }: DivisionsTableProp
                   onChange={(e) => setNewDivisionName(e.target.value)}
                   placeholder="Enter division name"
                   required
+                  autoFocus
+                  disabled={isLoading}
                 />
               </div>
               <div className="flex justify-end space-x-2">
@@ -158,7 +247,14 @@ export default function DivisionsTable({ divisions, userId }: DivisionsTableProp
                   type="submit"
                   disabled={isLoading || !newDivisionName.trim()}
                 >
-                  {isLoading ? 'Saving...' : 'Add Division'}
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Add Division'
+                  )}
                 </Button>
               </div>
             </form>
@@ -181,65 +277,7 @@ export default function DivisionsTable({ divisions, userId }: DivisionsTableProp
               </tr>
             </thead>
             <tbody className="divide-y">
-              {divisions.map(division => (
-                <tr key={division.id} className="hover:bg-muted/30">
-                  <td className="py-3 px-4">
-                    {editingId === division.id ? (
-                      <Input
-                        value={editName}
-                        onChange={(e) => setEditName(e.target.value)}
-                        className="max-w-xs"
-                      />
-                    ) : (
-                      <span>{division.name}</span>
-                    )}
-                  </td>
-                  <td className="py-3 px-4">{division.created_at ? format(new Date(division.created_at), 'MMM d, yyyy') : '—'}</td>
-                  <td className="py-3 px-4">
-                    {division.canManage && (
-                      <div className="flex gap-2">
-                        {editingId === division.id ? (
-                          <>
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={handleCancelEdit}
-                              disabled={isLoading}
-                            >
-                              Cancel
-                            </Button>
-                            <Button 
-                              size="sm"
-                              onClick={() => handleSaveEdit(division.id)}
-                              disabled={isLoading || !editName.trim()}
-                            >
-                              Save
-                            </Button>
-                          </>
-                        ) : (
-                          <>
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => handleStartEdit(division)}
-                            >
-                              Edit
-                            </Button>
-                            <Button 
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => handleDelete(division)}
-                              disabled={isLoading}
-                            >
-                              Delete
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              ))}
+              {tableRows}
               {divisions.length === 0 && (
                 <tr>
                   <td colSpan={3} className="py-6 text-center text-muted-foreground">
@@ -252,17 +290,16 @@ export default function DivisionsTable({ divisions, userId }: DivisionsTableProp
         </div>
       </div>
       
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={!!deletingDivision} onOpenChange={(open) => !open && setDeletingDivision(null)}>
+      <Dialog open={!!deletingDivision} onOpenChange={handleDialogOpenChange}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete Division</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. This will permanently delete the division and unassign all users from it.
+            </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <p>Are you sure you want to delete this division?</p>
-            <p className="text-sm text-muted-foreground mt-2">
-              This will unassign all users from this division.
-            </p>
             {deletingDivision && (
               <p className="font-semibold mt-4">{deletingDivision.name}</p>
             )}

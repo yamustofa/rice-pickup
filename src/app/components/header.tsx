@@ -7,7 +7,7 @@ import { createClient } from '@/utils/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Profile } from '@/types/supabase'
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -153,6 +153,10 @@ export default function Header({ user }: HeaderProps) {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0 flex flex-col h-full w-64">
+              <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+              <SheetDescription className="sr-only">
+                Main navigation menu with links to different sections of the application
+              </SheetDescription>
               <div className="flex flex-col gap-2 pt-8 px-4 pb-20">
                 <Link href="/" className={`flex items-center gap-3 text-base font-semibold py-2 px-2 rounded-md hover:bg-muted/50 transition-colors ${pathname === '/' ? 'bg-primary/10 text-primary' : ''}`}> <Home className="h-4 w-4" /> Dashboard </Link>
                 <Link href="/profile" className={`flex items-center gap-3 text-base font-semibold py-2 px-2 rounded-md hover:bg-muted/50 transition-colors ${pathname.startsWith('/profile') ? 'bg-primary/10 text-primary' : ''}`}> <User className="h-4 w-4" /> My Profile </Link>

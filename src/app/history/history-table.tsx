@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
 import { toast } from 'sonner'
 import { Pencil, Trash2, Loader2 } from 'lucide-react'
 import { format } from 'date-fns'
@@ -37,66 +37,56 @@ export default function HistoryTable({ years, pickupsByMonth, quota }: HistoryTa
   const [deletingPickup, setDeletingPickup] = useState<PickupLog | null>(null)
   const [editQuantity, setEditQuantity] = useState<string>('')
   const [isLoading, setIsLoading] = useState(false)
-  const [editDate, setEditDate] = useState<string>('');
+  const [editDate, setEditDate] = useState<string>('')
   const supabase = createClient()
   const router = useRouter()
   
-  const monthNames = [
+  // Memoize month names to prevent recreation on each render
+  const monthNames = useMemo(() => [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
-  ]
+  ], [])
   
-  // Get all months for the selected year
-  const months = selectedYear 
-    ? Array.from({ length: 12 }, (_, i) => i + 1)
-        .sort((a, b) => b - a) // Sort in descending order
-    : []
+  // Memoize months for selected year
+  const months = useMemo(() => 
+    selectedYear 
+      ? Array.from({ length: 12 }, (_, i) => i + 1)
+          .sort((a, b) => b - a)
+      : [],
+    [selectedYear]
+  )
   
-  // Calculate total for each month
-  const getTotalForMonth = (year: number, month: number) => {
+  // Memoize total calculation function
+  const getTotalForMonth = useCallback((year: number, month: number) => {
     const key = `${year}-${month}`
     const logs = pickupsByMonth[key] || []
     return logs.reduce((sum, log) => sum + log.quantity, 0)
-  }
+  }, [pickupsByMonth])
   
-  // Check if month is completed
-  const isMonthCompleted = (year: number, month: number) => {
+  // Memoize month completion check
+  const isMonthCompleted = useCallback((year: number, month: number) => {
     return getTotalForMonth(year, month) >= quota
-  }
+  }, [getTotalForMonth, quota])
 
-  const handleDelete = (pickup: PickupLog) => {
+  const handleDelete = useCallback((pickup: PickupLog) => {
     setDeletingPickup(pickup)
-  }
+  }, [])
 
-  const handleEdit = (pickup: PickupLog) => {
-    setEditingPickup(pickup);
-    setEditQuantity(pickup.quantity.toString());
-    setEditDate(pickup.pickup_date ? pickup.pickup_date.split('T')[0] : ''); // format as yyyy-mm-dd
-  };
+  const handleEdit = useCallback((pickup: PickupLog) => {
+    setEditingPickup(pickup)
+    setEditQuantity(pickup.quantity.toString())
+    setEditDate(pickup.pickup_date ? pickup.pickup_date.split('T')[0] : '')
+  }, [])
 
-  const handleConfirmDelete = async () => {
+  const handleConfirmDelete = useCallback(async () => {
     if (!deletingPickup) return
 
     setIsLoading(true)
     try {
-      // First verify the pickup exists
-      const { data: existingPickup, error: fetchError } = await supabase
-        .from('pickups')
-        .select('*')
-        .eq('id', deletingPickup.id)
-        .single()
-
-      if (fetchError) throw fetchError
-      if (!existingPickup) {
-        throw new Error('Pickup not found')
-      }
-
-      // Then delete the pickup
       const { error: deleteError } = await supabase
         .from('pickups')
         .delete()
         .eq('id', deletingPickup.id)
-        .select()
 
       if (deleteError) throw deleteError
 
@@ -109,12 +99,11 @@ export default function HistoryTable({ years, pickupsByMonth, quota }: HistoryTa
       setIsLoading(false)
       setDeletingPickup(null)
     }
-  }
+  }, [deletingPickup, router, supabase])
 
-  const handleSaveEdit = async () => {
+  const handleSaveEdit = useCallback(async () => {
     if (!editingPickup) return
 
-    // Calculate the new total for the month
     const key = `${editingPickup.year}-${editingPickup.month}`
     const logs = pickupsByMonth[key] || []
     const currentTotal = logs.reduce((sum, log) => {
@@ -130,24 +119,13 @@ export default function HistoryTable({ years, pickupsByMonth, quota }: HistoryTa
 
     setIsLoading(true)
     try {
-      // First verify the pickup exists and belongs to the user
-      const { data: existingPickup, error: fetchError } = await supabase
-        .from('pickups')
-        .select('*')
-        .eq('id', editingPickup.id)
-        .single()
-
-      if (fetchError) throw fetchError
-      if (!existingPickup) {
-        throw new Error('Pickup not found')
-      }
-
-      // Then update the pickup
       const { error: updateError } = await supabase
         .from('pickups')
-        .update({ quantity: Number(editQuantity), pickup_date: editDate })
+        .update({ 
+          quantity: Number(editQuantity), 
+          pickup_date: editDate 
+        })
         .eq('id', editingPickup.id)
-        .select()
 
       if (updateError) throw updateError
 
@@ -160,22 +138,100 @@ export default function HistoryTable({ years, pickupsByMonth, quota }: HistoryTa
       setIsLoading(false)
       setEditingPickup(null)
     }
-  }
-  
+  }, [editingPickup, editQuantity, editDate, pickupsByMonth, quota, router, supabase])
+
+  // Memoize year buttons to prevent unnecessary re-renders
+  const yearButtons = useMemo(() => (
+    <div className="flex flex-wrap gap-2">
+      {years.map(year => (
+        <Button
+          key={year}
+          variant={selectedYear === year ? 'default' : 'outline'}
+          onClick={() => setSelectedYear(year)}
+          size="sm"
+        >
+          {year}
+        </Button>
+      ))}
+    </div>
+  ), [years, selectedYear])
+
+  // Memoize table rows to prevent unnecessary re-renders
+  const tableRows = useMemo(() => (
+    months.map(month => {
+      const key = `${selectedYear}-${month}`
+      const logs = pickupsByMonth[key] || []
+      const total = getTotalForMonth(selectedYear!, month)
+      const completed = isMonthCompleted(selectedYear!, month)
+      
+      return (
+        <tr key={month} className="hover:bg-muted/30">
+          <td className="py-3 px-4 font-medium">{monthNames[month - 1]}</td>
+          <td className="py-3 px-4">
+            {completed ? (
+              <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                Completed
+              </span>
+            ) : logs.length > 0 ? (
+              <span className="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
+                In Progress
+              </span>
+            ) : (
+              <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+                Not Started
+              </span>
+            )}
+          </td>
+          <td className="py-3 px-4">
+            {total} of {quota} sacks
+          </td>
+          <td className="py-3 px-4">
+            {logs.length === 0 ? (
+              <span className="text-muted-foreground">No pickups</span>
+            ) : (
+              <div className="space-y-1">
+                {logs.map(log => (
+                  <div key={log.id} className="flex items-center justify-between text-xs">
+                    <span>
+                      {log.quantity} sack{log.quantity > 1 ? 's' : ''}
+                      {' at '}
+                      {log.pickup_date && !isNaN(new Date(log.pickup_date).getTime())
+                      ? format(new Date(log.pickup_date), 'MMM d, yyyy')
+                      : '—'}
+                    </span>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => handleEdit(log)}
+                        disabled={isLoading}
+                      >
+                        <Pencil className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-destructive"
+                        onClick={() => handleDelete(log)}
+                        disabled={isLoading}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </td>
+        </tr>
+      )
+    })
+  ), [months, selectedYear, pickupsByMonth, getTotalForMonth, isMonthCompleted, monthNames, quota, handleEdit, handleDelete, isLoading])
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap gap-2">
-        {years.map(year => (
-          <Button
-            key={year}
-            variant={selectedYear === year ? 'default' : 'outline'}
-            onClick={() => setSelectedYear(year)}
-            size="sm"
-          >
-            {year}
-          </Button>
-        ))}
-      </div>
+      {yearButtons}
       
       {selectedYear && (
         <div className="border rounded-md overflow-hidden">
@@ -189,75 +245,7 @@ export default function HistoryTable({ years, pickupsByMonth, quota }: HistoryTa
               </tr>
             </thead>
             <tbody className="divide-y">
-              {months.map(month => {
-                const key = `${selectedYear}-${month}`
-                const logs = pickupsByMonth[key] || []
-                const total = getTotalForMonth(selectedYear, month)
-                const completed = isMonthCompleted(selectedYear, month)
-                
-                return (
-                  <tr key={month} className="hover:bg-muted/30">
-                    <td className="py-3 px-4 font-medium">{monthNames[month - 1]}</td>
-                    <td className="py-3 px-4">
-                      {completed ? (
-                        <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-                          Completed
-                        </span>
-                      ) : logs.length > 0 ? (
-                        <span className="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
-                          In Progress
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
-                          Not Started
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-3 px-4">
-                      {total} of {quota} sacks
-                    </td>
-                    <td className="py-3 px-4">
-                      {logs.length === 0 ? (
-                        <span className="text-muted-foreground">No pickups</span>
-                      ) : (
-                        <div className="space-y-1">
-                          {logs.map(log => (
-                            <div key={log.id} className="flex items-center justify-between text-xs">
-                              <span>
-                                {log.quantity} sack{log.quantity > 1 ? 's' : ''}
-                                {' at '}
-                                {log.pickup_date && !isNaN(new Date(log.pickup_date).getTime())
-                                ? format(new Date(log.pickup_date), 'MMM d, yyyy')
-                                : '—'}
-                              </span>
-                              <div className="flex gap-1">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-6 w-6"
-                                  onClick={() => handleEdit(log)}
-                                  disabled={isLoading}
-                                >
-                                  <Pencil className="h-3 w-3" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-6 w-6 text-destructive"
-                                  onClick={() => handleDelete(log)}
-                                  disabled={isLoading}
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                )
-              })}
+              {tableRows}
             </tbody>
           </table>
         </div>
@@ -273,6 +261,9 @@ export default function HistoryTable({ years, pickupsByMonth, quota }: HistoryTa
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Pickup</DialogTitle>
+            <DialogDescription>
+              Edit the quantity and date of the pickup.
+            </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <div className="space-y-4">
@@ -285,7 +276,7 @@ export default function HistoryTable({ years, pickupsByMonth, quota }: HistoryTa
                   min={1}
                   value={editQuantity}
                   onChange={e => {
-                    const val = e.target.value.replace(/^0+(?=\d)/, '') // remove leading zeros
+                    const val = e.target.value.replace(/^0+(?=\d)/, '')
                     if (val === '' || (/^\d+$/.test(val) && Number(val) >= 0)) {
                       setEditQuantity(val)
                     }
@@ -350,6 +341,9 @@ export default function HistoryTable({ years, pickupsByMonth, quota }: HistoryTa
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete Pickup</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone.
+            </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <p>Are you sure you want to delete this pickup?</p>

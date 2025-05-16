@@ -1,11 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 // Simplified division type that only requires id and name
 interface SimpleDivision {
@@ -29,9 +31,38 @@ export default function OnboardingForm({ divisions, userId }: OnboardingFormProp
   const [addingNewDivision, setAddingNewDivision] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Memoize the sorted divisions list
+  const sortedDivisions = useMemo(() => 
+    [...divisions].sort((a, b) => a.name.localeCompare(b.name)),
+    [divisions]
+  )
   
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Validate inputs
+    if (!name.trim()) {
+      setError('Please enter your name')
+      return
+    }
+    
+    if (!addingNewDivision && !divisionId) {
+      setError('Please select a division')
+      return
+    }
+    
+    if (addingNewDivision && !newDivision.trim()) {
+      setError('Please enter a division name')
+      return
+    }
+    
+    const quotaNum = Number(quota)
+    if (isNaN(quotaNum) || quotaNum < 1 || quotaNum > 3) {
+      setError('Please enter a valid quota between 1 and 3')
+      return
+    }
+    
     setIsLoading(true)
     setError(null)
     
@@ -42,7 +73,10 @@ export default function OnboardingForm({ divisions, userId }: OnboardingFormProp
       if (addingNewDivision && newDivision) {
         const { data: newDivisionData, error: divisionError } = await supabase
           .from('divisions')
-          .insert({ name: newDivision, created_by: userId })
+          .insert({ 
+            name: newDivision.trim(), 
+            created_by: userId 
+          })
           .select('id')
           .single()
         
@@ -51,23 +85,20 @@ export default function OnboardingForm({ divisions, userId }: OnboardingFormProp
         selectedDivisionId = newDivisionData.id
       }
       
-      // If not adding a new division and no division selected
-      if (!addingNewDivision && !selectedDivisionId) {
-        throw new Error('Please select a division')
-      }
-      
       // Update user profile
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
-          name,
+          name: name.trim(),
           division_id: selectedDivisionId,
-          quota: Number(quota),
+          quota: quotaNum,
           updated_at: new Date().toISOString()
         })
         .eq('id', userId)
       
       if (profileError) throw profileError
+      
+      toast.success('Profile updated successfully')
       
       // Refresh the page cache and redirect to homepage
       router.refresh()
@@ -75,45 +106,65 @@ export default function OnboardingForm({ divisions, userId }: OnboardingFormProp
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'An error occurred while updating your profile'
       setError(errorMessage)
+      toast.error(errorMessage)
+    } finally {
       setIsLoading(false)
     }
-  }
+  }, [name, divisionId, newDivision, quota, addingNewDivision, userId, router, supabase])
+
+  const handleQuotaChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/^0+(?=\d)/, '') // remove leading zeros
+    if (val === '' || (/^\d+$/.test(val) && Number(val) >= 0 && Number(val) <= 3)) {
+      setQuota(val)
+    }
+  }, [])
+
+  const toggleDivisionMode = useCallback(() => {
+    setAddingNewDivision(prev => !prev)
+    setDivisionId('')
+    setNewDivision('')
+  }, [])
   
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="name">Name</Label>
+          <Label htmlFor="name" className="text-base">Name</Label>
           <Input
             id="name"
             placeholder="Your name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
+            className="h-11 text-base"
+            disabled={isLoading}
+            autoFocus
           />
         </div>
         
         {!addingNewDivision ? (
           <div className="space-y-2">
-            <div className="flex justify-between">
-              <Label htmlFor="division">Division</Label>
+            <div className="flex justify-between items-center">
+              <Label htmlFor="division" className="text-base">Division</Label>
               <button
                 type="button"
-                className="text-sm text-blue-600 hover:underline"
-                onClick={() => setAddingNewDivision(true)}
+                className="text-sm text-blue-600 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
+                onClick={toggleDivisionMode}
+                disabled={isLoading}
               >
                 Add new division
               </button>
             </div>
             <select
               id="division"
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               value={divisionId}
               onChange={(e) => setDivisionId(e.target.value)}
               required={!addingNewDivision}
+              disabled={isLoading}
             >
               <option value="">Select a division</option>
-              {divisions.map((division) => (
+              {sortedDivisions.map((division) => (
                 <option key={division.id} value={division.id}>
                   {division.name}
                 </option>
@@ -122,12 +173,13 @@ export default function OnboardingForm({ divisions, userId }: OnboardingFormProp
           </div>
         ) : (
           <div className="space-y-2">
-            <div className="flex justify-between">
-              <Label htmlFor="newDivision">New Division</Label>
+            <div className="flex justify-between items-center">
+              <Label htmlFor="newDivision" className="text-base">New Division</Label>
               <button
                 type="button"
-                className="text-sm text-blue-600 hover:underline"
-                onClick={() => setAddingNewDivision(false)}
+                className="text-sm text-blue-600 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
+                onClick={toggleDivisionMode}
+                disabled={isLoading}
               >
                 Select existing division
               </button>
@@ -138,12 +190,14 @@ export default function OnboardingForm({ divisions, userId }: OnboardingFormProp
               value={newDivision}
               onChange={(e) => setNewDivision(e.target.value)}
               required={addingNewDivision}
+              className="h-11 text-base"
+              disabled={isLoading}
             />
           </div>
         )}
         
         <div className="space-y-2">
-          <Label htmlFor="quota">Monthly Rice Quota (sacks)</Label>
+          <Label htmlFor="quota" className="text-base">Monthly Rice Quota (sacks)</Label>
           <Input
             id="quota"
             type="text"
@@ -151,28 +205,36 @@ export default function OnboardingForm({ divisions, userId }: OnboardingFormProp
             min={1}
             max={3}
             value={quota}
-            onChange={e => {
-              const val = e.target.value.replace(/^0+(?=\d)/, '') // remove leading zeros
-              if (val === '' || (/^\d+$/.test(val) && Number(val) >= 0)) {
-                setQuota(val)
-              }
-            }}
+            onChange={handleQuotaChange}
             required
+            className="h-11 text-base"
+            disabled={isLoading}
           />
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             You can pick up between 1-3 sacks per month
           </p>
         </div>
       </div>
       
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md text-sm">
           {error}
         </div>
       )}
       
-      <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? 'Saving...' : 'Save Profile'}
+      <Button 
+        type="submit" 
+        className="w-full h-11 text-base font-medium" 
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Saving...
+          </>
+        ) : (
+          'Save Profile'
+        )}
       </Button>
     </form>
   )
