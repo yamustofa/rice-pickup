@@ -1,5 +1,4 @@
 import LoginForm from './login-form'
-import { Lock } from 'lucide-react'
 import Image from 'next/image'
 
 export default async function LoginPage() {
@@ -27,7 +26,7 @@ export default async function LoginPage() {
             <div className="absolute bottom-8 left-8 right-8 z-20">
               <div className="backdrop-blur-md bg-white/20 p-5 rounded-lg shadow-xl">
                 <p className="text-md font-normal italic leading-relaxed text-white/80">
-                  "The lifeblood of nations, the humble grain of rice carries within it the energy of the sun, the purity of water, and the quiet strength cultivated by generations. It is not merely sustenance, but a symbol of resilience and the enduring connection between humanity and the earth."
+                  The lifeblood of nations, the humble grain of rice carries within it the energy of the sun, the purity of water, and the quiet strength cultivated by generations. It is not merely sustenance, but a symbol of resilience and the enduring connection between humanity and the earth.
                 </p>
               </div>
             </div>
