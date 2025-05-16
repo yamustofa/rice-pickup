@@ -19,12 +19,16 @@
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "cmdk": "^1.1.1",
-        "date-fns": "^4.1.0",
+        "date-fns": "^2.29.3",
         "lucide-react": "^0.510.0",
         "next": "15.3.2",
         "next-themes": "^0.4.6",
         "react": "^19.0.0",
+<<<<<<< HEAD
         "react-day-picker": "^9.6.7",
+=======
+        "react-calendar": "^4.8.0",
+>>>>>>> 5e2f85f9b24be16dd8725aa3839e524700869937
         "react-dom": "^19.0.0",
         "react-nice-avatar": "^1.5.0",
         "sonner": "^2.0.3",
@@ -921,9 +925,9 @@
 
     "react": ["react@19.1.0", "", {}, "sha512-FS+XFBNvn3GTAWq26joslQgWNoFu08F4kl0J4CgdNKADkdSGXQyTCnKteIAJy96Br6YbpEU1LSzV5dYtjMkMDg=="],
 
-    "react-calendar": ["react-calendar@5.1.0", "", { "dependencies": { "@wojtekmaj/date-utils": "^1.1.3", "clsx": "^2.0.0", "get-user-locale": "^2.2.1", "warning": "^4.0.0" }, "peerDependencies": { "@types/react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0", "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0", "react-dom": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0" }, "optionalPeers": ["@types/react"] }, "sha512-09o/rQHPZGEi658IXAJtWfra1N69D1eFnuJ3FQm9qUVzlzNnos1+GWgGiUeSs22QOpNm32aoVFOimq0p3Ug9Eg=="],
 
     "react-day-picker": ["react-day-picker@9.7.0", "", { "dependencies": { "@date-fns/tz": "1.2.0", "date-fns": "4.1.0", "date-fns-jalali": "4.1.0-0" }, "peerDependencies": { "react": ">=16.8.0" } }, "sha512-urlK4C9XJZVpQ81tmVgd2O7lZ0VQldZeHzNejbwLWZSkzHH498KnArT0EHNfKBOWwKc935iMLGZdxXPRISzUxQ=="],
+
 
     "react-dom": ["react-dom@19.1.0", "", { "dependencies": { "scheduler": "^0.26.0" }, "peerDependencies": { "react": "^19.1.0" } }, "sha512-Xs1hdnE+DyKgeHJeJznQmYMIBG3TKIHJJT95Q58nHLSrElKlGQqDTR2HQ9fx5CN/Gk6Vh/kupBTDLU11/nDk/g=="],
 

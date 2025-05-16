@@ -8,8 +8,7 @@ import { buttonVariants } from "./button";
 
 function Calendar({
   className,
-  classNames,
-  showOutsideDays = true,
+  disabled = false,
   ...props
 }: React.ComponentProps<typeof DayPicker>) {
   const defaultClassNames = getDefaultClassNames();
