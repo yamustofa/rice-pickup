@@ -2,7 +2,6 @@ import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Header from './components/header'
 import Dashboard from './components/dashboard'
-import { Skeleton } from '@/components/ui/skeleton'
 
 export default async function Home() {
   const supabase = await createClient()
@@ -97,34 +96,3 @@ export default async function Home() {
     </div>
   )
 }
-
-// Loading state skeleton 
-export function Loading() {
-  return (
-    <div className="flex flex-col min-h-screen bg-muted/20">
-      <div className="border-b bg-white">
-        <div className="container mx-auto py-3 px-4 flex justify-between items-center">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-8 w-8 rounded-full" />
-        </div>
-      </div>
-      <main className="flex-1 container mx-auto py-6 px-4">
-        <div className="space-y-6">
-          <div>
-            <Skeleton className="h-8 w-64 mb-2" />
-            <Skeleton className="h-4 w-96" />
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Skeleton className="h-28 rounded-lg" />
-            <Skeleton className="h-28 rounded-lg" />
-            <Skeleton className="h-28 rounded-lg" />
-          </div>
-          
-          <Skeleton className="h-10 w-full max-w-sm mb-4" />
-          <Skeleton className="h-64 w-full rounded-lg" />
-        </div>
-      </main>
-    </div>
-  )
-} 
