@@ -37,7 +37,7 @@ export default function HistoryTable({ years, pickupsByMonth, quota }: HistoryTa
   const [deletingPickup, setDeletingPickup] = useState<PickupLog | null>(null)
   const [editQuantity, setEditQuantity] = useState<string>('')
   const [isLoading, setIsLoading] = useState(false)
-  const [editDate, setEditDate] = useState<string>('');
+  const [editDate, setEditDate] = useState<Date | undefined>()
   const supabase = createClient()
   const router = useRouter()
   
@@ -68,10 +68,14 @@ export default function HistoryTable({ years, pickupsByMonth, quota }: HistoryTa
     setDeletingPickup(pickup)
   }
 
+  const handleDateSelect = (date: Date | null) => {
+    setEditDate(date || undefined);
+  };
+
   const handleEdit = (pickup: PickupLog) => {
     setEditingPickup(pickup);
     setEditQuantity(pickup.quantity.toString());
-    setEditDate(pickup.pickup_date ? pickup.pickup_date.split('T')[0] : ''); // format as yyyy-mm-dd
+    setEditDate(new Date(pickup.pickup_date));
   };
 
   const handleConfirmDelete = async () => {
@@ -145,7 +149,7 @@ export default function HistoryTable({ years, pickupsByMonth, quota }: HistoryTa
       // Then update the pickup
       const { error: updateError } = await supabase
         .from('pickups')
-        .update({ quantity: Number(editQuantity), pickup_date: editDate })
+        .update({ quantity: Number(editQuantity), pickup_date: editDate ? format(editDate, 'yyyy-MM-dd') : undefined })
         .eq('id', editingPickup.id)
         .select()
 
@@ -285,14 +289,16 @@ export default function HistoryTable({ years, pickupsByMonth, quota }: HistoryTa
                   min={1}
                   value={editQuantity}
                   onChange={e => {
-                    const val = e.target.value.replace(/^0+(?=\d)/, '') // remove leading zeros
+                    const val = e.target.value.replace(/^0+(?=\d)/, '')
                     if (val === '' || (/^\d+$/.test(val) && Number(val) >= 0)) {
                       setEditQuantity(val)
                     }
                   }}
                 />
+              </div>
 
-                <label className="text-sm font-medium">Pickup Date</label>
+              <div className="space-y-2">
+                <Label>Pickup Date</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -313,8 +319,8 @@ export default function HistoryTable({ years, pickupsByMonth, quota }: HistoryTa
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={editDate ? new Date(editDate) : undefined}
-                      onSelect={(day) => setEditDate(day ? format(day, 'yyyy-MM-dd') : '')}
+                      selected={editDate}
+                      onSelect={handleDateSelect}
                     />
                   </PopoverContent>
                 </Popover>
@@ -331,7 +337,7 @@ export default function HistoryTable({ years, pickupsByMonth, quota }: HistoryTa
             </Button>
             <Button
               onClick={handleSaveEdit}
-              disabled={isLoading}
+              disabled={isLoading || !editDate || !editQuantity}
             >
               {isLoading ? (
                 <>

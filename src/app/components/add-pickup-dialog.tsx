@@ -15,7 +15,7 @@ import {
   DialogTitle 
 } from '@/components/ui/dialog'
 import { Progress } from '@/components/ui/progress'
-import { Package, AlertCircle, CheckCircle2, CalendarIcon } from 'lucide-react'
+import { Package, AlertCircle, CheckCircle2, CalendarIcon, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Calendar } from '@/components/ui/calendar'
 import { format } from 'date-fns'
@@ -134,6 +134,10 @@ export default function AddPickupDialog({
   const progressValue = user.quota > 0 ? (currentPickedUp / user.quota) * 100 : 0
   const remainingQuota = user.quota - currentPickedUp
   
+  const handleDateSelect = (date: Date | null) => {
+    setPickupDate(date || undefined);
+  };
+  
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[425px]">
@@ -171,13 +175,12 @@ export default function AddPickupDialog({
           
           <form onSubmit={handleSubmit} className="space-y-4 mt-6">
             <div className="space-y-2">
-              <Label htmlFor="quantity">Pickup Quantity</Label>
+              <Label htmlFor="quantity">Quantity</Label>
               <Input
                 id="quantity"
                 type="text"
                 inputMode="numeric"
                 min={1}
-                max={user.quota - currentPickedUp}
                 value={quantity}
                 onChange={e => {
                   const val = e.target.value.replace(/^0+(?=\d)/, '') // remove leading zeros
@@ -185,13 +188,7 @@ export default function AddPickupDialog({
                     setQuantity(val)
                   }
                 }}
-                required
-                className="w-full"
-                autoComplete="off"
               />
-              <p className="text-xs text-muted-foreground">
-                Enter the number of sacks being picked up (max: {user.quota - currentPickedUp})
-              </p>
             </div>
             
             <div className="space-y-2">
@@ -217,7 +214,7 @@ export default function AddPickupDialog({
                   <Calendar
                     mode="single"
                     selected={pickupDate}
-                    onSelect={setPickupDate}
+                    onSelect={handleDateSelect}
                   />
                 </PopoverContent>
               </Popover>
@@ -238,19 +235,25 @@ export default function AddPickupDialog({
             )}
             
             <DialogFooter>
-              <Button 
-                type="button" 
+              <Button
                 variant="outline"
                 onClick={onClose}
-                disabled={isLoading || success}
+                disabled={isLoading}
               >
                 Cancel
               </Button>
-              <Button 
-                type="submit"
-                disabled={isLoading || success || quantity === '' || Number(quantity) <= 0 || Number(quantity) > (user.quota - currentPickedUp) || !pickupDate}
+              <Button
+                onClick={handleSubmit}
+                disabled={isLoading || !pickupDate || !quantity}
               >
-                {isLoading ? 'Recording...' : 'Record Pickup'}
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {pickup ? 'Saving...' : 'Adding...'}
+                  </>
+                ) : (
+                  pickup ? 'Save Changes' : 'Add Pickup'
+                )}
               </Button>
             </DialogFooter>
           </form>
