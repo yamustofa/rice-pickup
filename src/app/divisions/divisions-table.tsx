@@ -292,7 +292,7 @@ export default function DivisionsTable({ divisions, userId }: DivisionsTableProp
       
       <Dialog open={!!deletingDivision} onOpenChange={handleDialogOpenChange}>
         <DialogContent>
-          <DialogHeader>
+          <DialogHeader className='text-left'>
             <DialogTitle>Delete Division</DialogTitle>
             <DialogDescription>
               This action cannot be undone. This will permanently delete the division and unassign all users from it.

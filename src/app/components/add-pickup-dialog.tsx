@@ -137,7 +137,7 @@ export default function AddPickupDialog({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
+        <DialogHeader  className='text-left'>
           <DialogTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
             Record Rice Pickup

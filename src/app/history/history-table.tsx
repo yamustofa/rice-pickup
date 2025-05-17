@@ -263,7 +263,7 @@ export default function HistoryTable({ years, pickupsByMonth, quota }: HistoryTa
 
       <Dialog open={!!editingPickup} onOpenChange={() => setEditingPickup(null)}>
         <DialogContent>
-          <DialogHeader>
+          <DialogHeader className='text-left'>
             <DialogTitle>Edit Pickup</DialogTitle>
             <DialogDescription>
               Edit the quantity and date of the pickup.
@@ -343,7 +343,7 @@ export default function HistoryTable({ years, pickupsByMonth, quota }: HistoryTa
 
       <Dialog open={!!deletingPickup} onOpenChange={() => setDeletingPickup(null)}>
         <DialogContent>
-          <DialogHeader>
+          <DialogHeader className='text-left'>
             <DialogTitle>Delete Pickup</DialogTitle>
             <DialogDescription>
               This action cannot be undone.
