@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Loader2 } from 'lucide-react'
 import Avatar, { genConfig } from 'react-nice-avatar'
+import DeleteAccountDialog from './delete-account-dialog'
 
 // Simplified division type that only requires id and name
 interface SimpleDivision {
@@ -124,7 +125,7 @@ export default function ProfileForm({ profile, divisions }: ProfileFormProps) {
           <Label htmlFor="division">Division</Label>
           <select
             id="division"
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             value={divisionId}
             onChange={(e) => setDivisionId(e.target.value)}
             required
@@ -212,6 +213,15 @@ export default function ProfileForm({ profile, divisions }: ProfileFormProps) {
           'Save Changes'
         )}
       </Button>
+      
+      <div className="pt-6 border border-accent/20 bg-accent/10 p-4 rounded-lg">
+        <h3 className="text-lg font-medium text-destructive mb-4">Danger Zone</h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          Once you delete your account, there is no going back. Please be certain.
+        </p>
+        <DeleteAccountDialog />
+      </div>
+      
     </form>
   )
 } 
