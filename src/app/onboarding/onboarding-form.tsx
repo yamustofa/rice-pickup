@@ -85,16 +85,40 @@ export default function OnboardingForm({ divisions, userId }: OnboardingFormProp
         selectedDivisionId = newDivisionData.id
       }
       
-      // Update user profile
-      const { error: profileError } = await supabase
+      // First check if profile exists
+      const { data: existingProfile } = await supabase
         .from('profiles')
-        .update({
-          name: name.trim(),
-          division_id: selectedDivisionId,
-          quota: quotaNum,
-          updated_at: new Date().toISOString()
-        })
+        .select('id')
         .eq('id', userId)
+        .single()
+
+      let profileError
+      if (existingProfile) {
+        // Update existing profile
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            name: name.trim(),
+            division_id: selectedDivisionId,
+            quota: quotaNum,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', userId)
+        profileError = error
+      } else {
+        // Insert new profile
+        const { error } = await supabase
+          .from('profiles')
+          .insert({
+            id: userId,
+            name: name.trim(),
+            division_id: selectedDivisionId,
+            quota: quotaNum,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+        profileError = error
+      }
       
       if (profileError) throw profileError
       
