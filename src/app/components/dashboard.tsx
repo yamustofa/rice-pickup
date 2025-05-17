@@ -78,7 +78,7 @@ export default function Dashboard({ users, currentUser, monthId }: DashboardProp
         {currentUserData && (
           <Card className="w-full md:w-auto bg-card-accent-foreground dark:bg-accent/90 dark:border-accent/20">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-primary-foreground dark:text-accent-foreground">Your Rice Quota</CardTitle>
+              <CardTitle className="text-sm font-medium text-primary-foreground dark:text-accent-foreground">Your Rice Pickup</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-1">
