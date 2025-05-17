@@ -16,9 +16,10 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu'
-import { LogOut, Menu, User, History, Grid2X2, Home } from 'lucide-react'
+import { LogOut, Menu, User, History, Grid2X2, Home, Moon, Sun } from 'lucide-react'
 import { toast } from 'sonner'
 import NiceAvatar from 'react-nice-avatar'
+import { useTheme } from 'next-themes'
 
 interface HeaderProps {
   user: Profile
@@ -33,6 +34,7 @@ export default function Header({ user }: HeaderProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const { theme, setTheme } = useTheme()
   
   const supabase = createClient()
   
@@ -76,22 +78,22 @@ export default function Header({ user }: HeaderProps) {
   }
   
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto max-w-7xl py-3 px-4 flex justify-between items-center">
         {/* Desktop: Logo left, menu center, avatar right */}
         <div className="hidden md:flex w-full items-center justify-between">
           {/* Logo */}
           <div className="flex items-center justify-start md:basis-48">
-            <Link href="/" className="text-xl font-bold text-primary flex items-center gap-2">
+            <Link href="/" className="text-xl font-bold text-primary dark:text-accent-foreground flex items-center gap-2">
               <span>Rice Pickup</span>
             </Link>
           </div>
           {/* Centered Menu */}
           <nav className="flex-1 flex justify-center items-center gap-6">
-            <Link href="/" className={`flex items-center gap-2 text-sm font-medium rounded-md px-3 py-2 transition-colors hover:bg-muted/50 focus:bg-primary/10 ${pathname === '/' ? 'bg-primary/10 text-primary' : ''}`}> <Home className="h-4 w-4" /> <span>Dashboard</span> </Link>
-            <Link href="/profile" className={`flex items-center gap-2 text-sm font-medium rounded-md px-3 py-2 transition-colors hover:bg-muted/50 focus:bg-primary/10 ${pathname.startsWith('/profile') ? 'bg-primary/10 text-primary' : ''}`}> <User className="h-4 w-4" /> <span>My Profile</span> </Link>
-            <Link href="/history" className={`flex items-center gap-2 text-sm font-medium rounded-md px-3 py-2 transition-colors hover:bg-muted/50 focus:bg-primary/10 ${pathname.startsWith('/history') ? 'bg-primary/10 text-primary' : ''}`}> <History className="h-4 w-4" /> <span>Pickup History</span> </Link>
-            <Link href="/divisions" className={`flex items-center gap-2 text-sm font-medium rounded-md px-3 py-2 transition-colors hover:bg-muted/50 focus:bg-primary/10 ${pathname.startsWith('/divisions') ? 'bg-primary/10 text-primary' : ''}`}> <Grid2X2 className="h-4 w-4" /> <span>Divisions</span> </Link>
+            <Link href="/" className={`flex items-center gap-2 text-sm font-medium rounded-md px-3 py-2 transition-colors hover:bg-muted/50 focus:bg-primary/10 ${pathname === '/' ? 'bg-primary/10 text-primary dark:bg-accent/20 dark:text-accent-foreground' : ''}`}> <Home className="h-4 w-4" /> <span>Dashboard</span> </Link>
+            <Link href="/profile" className={`flex items-center gap-2 text-sm font-medium rounded-md px-3 py-2 transition-colors hover:bg-muted/50 focus:bg-primary/10 ${pathname.startsWith('/profile') ? 'bg-primary/10 text-primary dark:bg-accent/20 dark:text-accent-foreground' : ''}`}> <User className="h-4 w-4" /> <span>My Profile</span> </Link>
+            <Link href="/history" className={`flex items-center gap-2 text-sm font-medium rounded-md px-3 py-2 transition-colors hover:bg-muted/50 focus:bg-primary/10 ${pathname.startsWith('/history') ? 'bg-primary/10 text-primary dark:bg-accent/20 dark:text-accent-foreground' : ''}`}> <History className="h-4 w-4" /> <span>Pickup History</span> </Link>
+            <Link href="/divisions" className={`flex items-center gap-2 text-sm font-medium rounded-md px-3 py-2 transition-colors hover:bg-muted/50 focus:bg-primary/10 ${pathname.startsWith('/divisions') ? 'bg-primary/10 text-primary dark:bg-accent/20 dark:text-accent-foreground' : ''}`}> <Grid2X2 className="h-4 w-4" /> <span>Divisions</span> </Link>
           </nav>
           {/* Avatar */}
           <div className="flex items-center justify-end basis-48">
@@ -109,11 +111,26 @@ export default function Header({ user }: HeaderProps) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user.name}</p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      Employee
-                    </p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{user.name}</p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        Employee
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                    >
+                      {theme === 'dark' ? (
+                        <Sun className="h-4 w-4" />
+                      ) : (
+                        <Moon className="h-4 w-4" />
+                      )}
+                      <span className="sr-only">Toggle theme</span>
+                    </Button>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -158,10 +175,10 @@ export default function Header({ user }: HeaderProps) {
                 Main navigation menu with links to different sections of the application
               </SheetDescription>
               <div className="flex flex-col gap-2 pt-8 px-4 pb-20">
-                <Link href="/" className={`flex items-center gap-3 text-base font-semibold py-2 px-2 rounded-md hover:bg-muted/50 transition-colors ${pathname === '/' ? 'bg-primary/10 text-primary' : ''}`}> <Home className="h-4 w-4" /> Dashboard </Link>
-                <Link href="/profile" className={`flex items-center gap-3 text-base font-semibold py-2 px-2 rounded-md hover:bg-muted/50 transition-colors ${pathname.startsWith('/profile') ? 'bg-primary/10 text-primary' : ''}`}> <User className="h-4 w-4" /> My Profile </Link>
-                <Link href="/history" className={`flex items-center gap-3 text-base font-semibold py-2 px-2 rounded-md hover:bg-muted/50 transition-colors ${pathname.startsWith('/history') ? 'bg-primary/10 text-primary' : ''}`}> <History className="h-4 w-4" /> Pickup History </Link>
-                <Link href="/divisions" className={`flex items-center gap-3 text-base font-semibold py-2 px-2 rounded-md hover:bg-muted/50 transition-colors ${pathname.startsWith('/divisions') ? 'bg-primary/10 text-primary' : ''}`}> <Grid2X2 className="h-4 w-4" /> Divisions </Link>
+                <Link href="/" className={`flex items-center gap-3 text-base dark:text-accent-foreground font-semibold py-2 px-2 rounded-md hover:bg-muted/50 transition-colors ${pathname === '/' ? 'bg-primary/10 text-primary' : ''}`}> <Home className="h-4 w-4" /> Dashboard </Link>
+                <Link href="/profile" className={`flex items-center gap-3 text-base dark:text-accent-foreground font-semibold py-2 px-2 rounded-md hover:bg-muted/50 transition-colors ${pathname.startsWith('/profile') ? 'bg-primary/10 text-primary' : ''}`}> <User className="h-4 w-4" /> My Profile </Link>
+                <Link href="/history" className={`flex items-center gap-3 text-base dark:text-accent-foreground font-semibold py-2 px-2 rounded-md hover:bg-muted/50 transition-colors ${pathname.startsWith('/history') ? 'bg-primary/10 text-primary' : ''}`}> <History className="h-4 w-4" /> Pickup History </Link>
+                <Link href="/divisions" className={`flex items-center gap-3 text-base dark:text-accent-foreground font-semibold py-2 px-2 rounded-md hover:bg-muted/50 transition-colors ${pathname.startsWith('/divisions') ? 'bg-primary/10 text-primary' : ''}`}> <Grid2X2 className="h-4 w-4" /> Divisions </Link>
               </div>
               <div className="absolute bottom-0 left-0 w-full px-4 pb-6">
                 <Button 
@@ -179,7 +196,7 @@ export default function Header({ user }: HeaderProps) {
           </Sheet>
           {/* Centered logo */}
           <div className="flex-1 flex justify-center">
-            <Link href="/" className="text-lg font-bold text-primary">Rice Pickup</Link>
+            <Link href="/" className="text-lg font-bold text-primary dark:text-accent-foreground">Rice Pickup</Link>
           </div>
           {/* Avatar right */}
           <div className="flex items-center gap-2 justify-end">
@@ -197,11 +214,26 @@ export default function Header({ user }: HeaderProps) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user.name}</p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      Employee
-                    </p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{user.name}</p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        Employee
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                    >
+                      {theme === 'dark' ? (
+                        <Sun className="h-4 w-4" />
+                      ) : (
+                        <Moon className="h-4 w-4" />
+                      )}
+                      <span className="sr-only">Toggle theme</span>
+                    </Button>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -219,7 +251,7 @@ export default function Header({ user }: HeaderProps) {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
-                  className="text-destructive focus:text-destructive cursor-pointer"
+                  className="text-destructive focus:text-destructive hover:text-destructive-foreground cursor-pointer"
                   onClick={handleSignOut}
                   disabled={isLoggingOut}
                 >

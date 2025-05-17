@@ -1,17 +1,18 @@
 import LoginForm from './login-form'
 import Image from 'next/image'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 export default async function LoginPage() {
   return (
     <>
       {/* Background pattern */}
       <div className="fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-white" />
-        <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
+        <div className="absolute inset-0 bg-background" />
+        <div className="absolute inset-0 bg-[radial-gradient(var(--muted)_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
       </div>
 
       <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="w-full max-w-6xl flex overflow-hidden rounded-xl shadow-2xl bg-white/80 backdrop-blur-sm">
+        <div className="w-full max-w-6xl flex overflow-hidden rounded-xl shadow-2xl bg-card/80 backdrop-blur-sm border">
           {/* Left side - Image with quote overlay */}
           <div className="relative w-3/5 hidden md:block">
             <div className="absolute inset-0 bg-black/30 z-10 rounded-l-xl"></div>
@@ -33,20 +34,23 @@ export default async function LoginPage() {
           </div>
           
           {/* Right side - Login form */}
-          <div className="w-full md:w-2/5 bg-white/80 p-10 flex flex-col justify-center">
+          <div className="w-full md:w-2/5 bg-card/80 p-10 flex flex-col items-center justify-center">
             <div className="flex flex-col items-center space-y-3 mb-8">
-              <div className="h-16 w-16 bg-slate-100 rounded-full flex items-center justify-center mb-2">
+              <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center mb-2">
                 <span style={{ fontSize: 40 }}>🍙</span>
               </div>
-              <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+              <h1 className="text-2xl font-bold tracking-tight text-center text-foreground">
                 Welcome to Rice Pickup Tracking
               </h1>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 Sign in to manage your rice pickups
               </p>
             </div>
             <div className="w-full">
               <LoginForm />
+            </div>
+            <div className="mt-6 pt-6">
+              <ThemeToggle />
             </div>
           </div>
         </div>

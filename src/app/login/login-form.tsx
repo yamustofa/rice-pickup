@@ -97,8 +97,8 @@ export default function LoginForm() {
           </div>
         </div>
         
-        <form onSubmit={signInWithMagicLink} className="grid gap-2">
-          <div className="grid gap-1">
+        <form onSubmit={signInWithMagicLink} className="grid gap-2 space-y-2">
+          <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
@@ -119,13 +119,13 @@ export default function LoginForm() {
       </div>
       
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+        <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded">
           {error}
         </div>
       )}
       
       {message && (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+        <div className="bg-green-500/10 border border-green-500 text-green-500 px-4 py-3 rounded">
           {message}
         </div>
       )}

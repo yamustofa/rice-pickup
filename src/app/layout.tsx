@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { ThemeProvider } from 'next-themes'
 import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
 
@@ -13,12 +14,19 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen bg-background font-sans antialiased">
-        <div className="relative flex min-h-screen flex-col">
-          <main className="flex-1">{children}</main>
-        </div>
-        <Toaster />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <div className="relative flex min-h-screen flex-col">
+            <main className="flex-1">{children}</main>
+          </div>
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   )

@@ -107,7 +107,7 @@ export default function ProfileForm({ profile, divisions }: ProfileFormProps) {
   }
   
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg border">
+    <form onSubmit={handleSubmit} className="space-y-6 bg-card p-6 rounded-lg border shadow-sm">
       <div className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="name">Name</Label>
@@ -124,7 +124,7 @@ export default function ProfileForm({ profile, divisions }: ProfileFormProps) {
           <Label htmlFor="division">Division</Label>
           <select
             id="division"
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             value={divisionId}
             onChange={(e) => setDivisionId(e.target.value)}
             required
@@ -163,7 +163,9 @@ export default function ProfileForm({ profile, divisions }: ProfileFormProps) {
           <div className="flex gap-6 items-end">
             <button
               type="button"
-              className={`border rounded-lg p-2 ${avatarConfig.sex === 'man' ? 'ring-2 ring-primary' : ''}`}
+              className={`border rounded-lg p-2 transition-colors hover:bg-accent/50 ${
+                avatarConfig.sex === 'man' ? 'ring-2 ring-primary' : ''
+              }`}
               onClick={() => setAvatarConfig(staticMale)}
             >
               <Avatar style={{ width: 64, height: 64 }} {...staticMale} />
@@ -171,7 +173,9 @@ export default function ProfileForm({ profile, divisions }: ProfileFormProps) {
             </button>
             <button
               type="button"
-              className={`border rounded-lg p-2 ${avatarConfig.sex === 'woman' ? 'ring-2 ring-primary' : ''}`}
+              className={`border rounded-lg p-2 transition-colors hover:bg-accent/50 ${
+                avatarConfig.sex === 'woman' ? 'ring-2 ring-primary' : ''
+              }`}
               onClick={() => setAvatarConfig(staticFemale)}
             >
               <Avatar style={{ width: 64, height: 64 }} {...staticFemale} />
@@ -187,13 +191,13 @@ export default function ProfileForm({ profile, divisions }: ProfileFormProps) {
       </div>
       
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+        <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded">
           {error}
         </div>
       )}
       
       {success && (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+        <div className="bg-green-500/10 border border-green-500 text-green-500 px-4 py-3 rounded">
           Profile updated successfully!
         </div>
       )}

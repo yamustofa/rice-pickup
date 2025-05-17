@@ -235,19 +235,23 @@ export default function HistoryTable({ years, pickupsByMonth, quota }: HistoryTa
       
       {selectedYear && (
         <div className="border rounded-md overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50">
-              <tr>
-                <th className="py-3 px-4 text-left font-medium">Month</th>
-                <th className="py-3 px-4 text-left font-medium">Status</th>
-                <th className="py-3 px-4 text-left font-medium">Total Pickups</th>
-                <th className="py-3 px-4 text-left font-medium">Details</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {tableRows}
-            </tbody>
-          </table>
+          <div className="overflow-x-auto">
+            <div className="min-w-[640px]">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50">
+                  <tr>
+                    <th className="py-3 px-4 text-left font-medium">Month</th>
+                    <th className="py-3 px-4 text-left font-medium">Status</th>
+                    <th className="py-3 px-4 text-left font-medium">Total Pickups</th>
+                    <th className="py-3 px-4 text-left font-medium">Details</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {tableRows}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       )}
       

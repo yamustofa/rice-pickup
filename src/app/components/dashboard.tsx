@@ -76,16 +76,16 @@ export default function Dashboard({ users, currentUser, monthId }: DashboardProp
       
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {currentUserData && (
-          <Card className="w-full md:w-auto bg-accent border-primary/20">
+          <Card className="w-full md:w-auto bg-card-accent-foreground dark:bg-accent/90 dark:border-accent/20">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Your Rice Quota</CardTitle>
+              <CardTitle className="text-sm font-medium text-primary-foreground dark:text-accent-foreground">Your Rice Quota</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-1">
-                <p className="text-2xl font-bold">
-                  {currentUserData.pickedUp} <span className="text-base font-normal text-muted-foreground">of {currentUserData.quota} sacks</span>
+                <p className="text-2xl font-bold text-primary-foreground dark:text-accent-foreground">
+                  {currentUserData.pickedUp} <span className="text-base font-normal text-muted-foreground dark:text-muted-foreground">of {currentUserData.quota} sacks</span>
                 </p>
-                <Progress value={(currentUserData.pickedUp / currentUserData.quota) * 100} className="h-2 w-36" />
+                <Progress value={(currentUserData.pickedUp / currentUserData.quota) * 100} className="h-2 w-36  [&>*]:bg-accent dark:[&>*]:bg-background" />
               </div>
             </CardContent>
           </Card>

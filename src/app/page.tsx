@@ -79,7 +79,7 @@ export default async function Home() {
   }) || []
   
   return (
-    <div className="flex flex-col min-h-screen bg-muted/20">
+    <div className="flex flex-col min-h-screen bg-background">
       <Header user={currentUserProfile} />
       <main className="flex-1 container mx-auto py-6 px-4 max-w-7xl">
         <Dashboard
@@ -88,7 +88,7 @@ export default async function Home() {
           monthId={monthData as string}
         />
       </main>
-      <footer className="border-t bg-white py-6 mt-auto">
+      <footer className="border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-6 mt-auto">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
           <p>© {new Date().getFullYear()} Rice Pickup Tracker. All rights reserved.</p>
         </div>
